@@ -6,6 +6,7 @@ use App\Models\Lead;
 use App\Imports\LeadsImport;
 use Illuminate\Http\Request;
 use Maatwebsite\Excel\Facades\Excel;
+use Illuminate\Support\Facades\Validator; // Add this line
 
 class LeadsController extends Controller
 {
@@ -114,12 +115,39 @@ class LeadsController extends Controller
 
     public function import(Request $request)
     {
-        
         $request->validate([
-            'file' => 'required|mimes:xlsx'
+            'file' => 'required|mimes:xlsx,csv'
         ]);
 
-        Excel::import(new LeadsImport, $request->file('file'));
+        // Import data but don’t save to the database yet
+        $import = new LeadsImport;
+        $rows = Excel::toArray($import, $request->file('file'));
+
+        foreach ($rows[0] as $row) {
+            if (!isset($row['email'])) {
+                return redirect()->back()->with('error', 'Invalid data format.');
+            }
+
+            $existingLead = Lead::where('email', $row['email'])->first();
+            if ($existingLead) {
+                return redirect()->back()->with('error', 'Email ' . $row['email'] . ' already exists.');
+            }
+
+            $validator = Validator::make([
+                'name' => $row['name'],
+                'email' => $row['email']
+            ], [
+                'name' => 'required|string|max:255',
+                'email' => 'required|email|max:255|unique:leads,email'
+            ]);
+
+            if ($validator->fails()) {
+                return redirect()->back()->withErrors($validator)->withInput();
+            }
+        }
+
+        // Import the data into the database
+        Excel::import($import, $request->file('file'));
 
         return redirect()->back()->with('success', 'Leads Imported Successfully');
     }

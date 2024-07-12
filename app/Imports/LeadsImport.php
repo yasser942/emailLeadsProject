@@ -4,8 +4,9 @@ namespace App\Imports;
 
 use App\Models\Lead;
 use Maatwebsite\Excel\Concerns\ToModel;
+use Maatwebsite\Excel\Concerns\WithHeadingRow;
 
-class LeadsImport implements ToModel
+class LeadsImport implements ToModel, WithHeadingRow
 {
     /**
      * @param array $row
@@ -14,9 +15,10 @@ class LeadsImport implements ToModel
      */
     public function model(array $row)
     {
+        // Ensure that you use the correct heading keys from the file if necessary
         return new Lead([
-            'name'  => $row[0],  
-            'email' => $row[1], 
+            'name'  => $row['name'],  
+            'email' => $row['email'], 
         ]);
     }
 }
