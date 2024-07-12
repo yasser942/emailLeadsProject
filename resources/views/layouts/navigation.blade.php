@@ -22,6 +22,11 @@
                         {{ __('Leads') }}
                     </x-nav-link>
                 </div>
+                <div class="hidden space-x-8 sm:-my-px sm:ml-10 sm:flex">
+                    <x-nav-link :href="route('email-templates.index')" :active="request()->routeIs('email-templates.index')">
+                        {{ __('Email Templates') }}
+                    </x-nav-link>
+                </div>
             </div>
 
             <!-- Settings Dropdown -->

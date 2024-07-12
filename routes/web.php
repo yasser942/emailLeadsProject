@@ -3,6 +3,7 @@
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\LeadsController;
 use App\Http\Controllers\ProfileController;
+use App\Http\Controllers\EmailTemplateController;
 /*
 |--------------------------------------------------------------------------
 | Web Routes
@@ -25,9 +26,13 @@ Route::get('/dashboard', function () {
 
 
 
-
+//Leads
 Route::resource('leads', LeadsController::class)->middleware('auth');
 Route::post('leads/import', [LeadsController::class, 'import'])->name('leads.import')->middleware('auth');
+
+//email templates
+Route::resource('email-templates', EmailTemplateController::class)->middleware('auth');
+
 
 
 Route::middleware('auth')->group(function () {
