@@ -5,8 +5,10 @@ namespace App\Http\Controllers;
 use App\Models\Lead;
 use App\Imports\LeadsImport;
 use Illuminate\Http\Request;
+use App\Jobs\SendEmailToLead;
+use App\Models\EmailTemplate;
 use Maatwebsite\Excel\Facades\Excel;
-use Illuminate\Support\Facades\Validator; // Add this line
+use Illuminate\Support\Facades\Validator;
 
 class LeadsController extends Controller
 {
@@ -18,7 +20,13 @@ class LeadsController extends Controller
     public function index()
     {
         $leads = Lead::paginate(10);
-        return view('leads.index', compact('leads'));
+        $emailTemplates = EmailTemplate::all();
+
+        if ($emailTemplates->isEmpty()) {
+            return redirect()->route('email-templates.create')->with('error', 'No email template found. Please create one.');
+        }
+
+        return view('leads.index', compact('leads', 'emailTemplates'));
     }
 
     /**
@@ -39,17 +47,28 @@ class LeadsController extends Controller
      */
     public function store(Request $request)
     {
-    $validatedData = $request->validate([
-        'name' => 'required|string|max:255',
-        'email' => 'required|email|max:255|unique:leads',
-    ]);
+        $validatedData = $request->validate([
+            'name' => 'required|string|max:255',
+            'email' => 'required|email|max:255|unique:leads',
+        ]);
 
-    $lead = new Lead();
-    $lead->name = $validatedData['name'];
-    $lead->email = $validatedData['email'];
-    $lead->save();
+        // Check if there is an email template
+        $emailTemplate = EmailTemplate::first();
+        if (!$emailTemplate) {
+            return redirect()->route('email-templates.create')->with('error', 'No email template found. Please create one.');
+        }
 
-    return redirect()->route('leads.index')->with('success', 'Lead created successfully.');
+        $lead = new Lead();
+        $lead->name = $validatedData['name'];
+        $lead->email = $validatedData['email'];
+        $lead->save();
+
+        
+
+        // Dispatch the SendEmailToLead job
+        SendEmailToLead::dispatch($lead, $emailTemplate);
+
+        return redirect()->route('leads.index')->with('success', 'Lead created successfully.');
     }
 
     /**
@@ -111,15 +130,29 @@ class LeadsController extends Controller
     return redirect()->route('leads.index')->with('success', 'Lead deleted successfully.');
     }
 
-   
+    public function sendEmails(Request $request)
+    {
+        $request->validate([
+            'email_template' => 'required|exists:email_templates,id',
+        ]);
+
+        $emailTemplate = EmailTemplate::findOrFail($request->email_template);
+        $leads = Lead::all();
+
+        foreach ($leads as $lead) {
+            SendEmailToLead::dispatch($lead, $emailTemplate);
+        }
+
+        return redirect()->route('leads.index')->with('success', 'Emails are being sent to all leads.');
+    }
 
     public function import(Request $request)
     {
         $request->validate([
-            'file' => 'required|mimes:xlsx,csv'
+            'file' => 'required|mimes:xlsx'
         ]);
 
-        // Import data but don’t save to the database yet
+        // Import data but don't save to the database yet
         $import = new LeadsImport;
         $rows = Excel::toArray($import, $request->file('file'));
 

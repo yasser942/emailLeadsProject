@@ -3,6 +3,7 @@
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\LeadsController;
 use App\Http\Controllers\ProfileController;
+use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\EmailTemplateController;
 use App\Http\Controllers\MailtrapSettingsController;
 
@@ -21,13 +22,12 @@ Route::get('/', function () {
     return view('welcome');
 });
 
-Route::get('/dashboard', function () {
-    return view('dashboard');
-})->middleware(['auth', 'verified'])->name('dashboard');
+Route::get('/dashboard', [DashboardController::class, 'index'])->middleware(['auth', 'verified'])->name('dashboard');
 
 // Leads
 Route::resource('leads', LeadsController::class)->middleware('auth');
 Route::post('leads/import', [LeadsController::class, 'import'])->name('leads.import')->middleware('auth');
+Route::post('leads/send-emails', [LeadsController::class, 'sendEmails'])->name('leads.sendEmails')->middleware('auth');
 
 // Email templates
 Route::resource('email-templates', EmailTemplateController::class)->middleware('auth');

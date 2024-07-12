@@ -12,6 +12,19 @@
                     {{ __("You're logged in!") }}
                 </div>
             </div>
+            <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg mt-4">
+                <div class="p-6 text-gray-900">
+                    <h3 class="text-lg font-medium text-gray-900 mb-4">{{ __("Statistics") }}</h3>
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        <div class="bg-blue-100 p-4 rounded-lg shadow">
+                            <p class="text-blue-800 font-semibold">{{ __("Total Leads: ") }} {{ $leadsCount }}</p>
+                        </div>
+                        <div class="bg-green-100 p-4 rounded-lg shadow">
+                            <p class="text-green-800 font-semibold">{{ __("Total Email Templates: ") }} {{ $emailTemplatesCount }}</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
         </div>
     </div>
 </x-app-layout>
