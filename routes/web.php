@@ -26,8 +26,8 @@ Route::get('/dashboard', function () {
 
 
 
-Route::resource('leads', LeadsController::class);
-
+Route::resource('leads', LeadsController::class)->middleware('auth');
+Route::post('leads/import', [LeadsController::class, 'import'])->name('leads.import')->middleware('auth');
 
 
 Route::middleware('auth')->group(function () {

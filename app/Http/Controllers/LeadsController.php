@@ -3,7 +3,9 @@
 namespace App\Http\Controllers;
 
 use App\Models\Lead;
+use App\Imports\LeadsImport;
 use Illuminate\Http\Request;
+use Maatwebsite\Excel\Facades\Excel;
 
 class LeadsController extends Controller
 {
@@ -106,5 +108,19 @@ class LeadsController extends Controller
     $lead->delete();
 
     return redirect()->route('leads.index')->with('success', 'Lead deleted successfully.');
+    }
+
+   
+
+    public function import(Request $request)
+    {
+        
+        $request->validate([
+            'file' => 'required|mimes:xlsx'
+        ]);
+
+        Excel::import(new LeadsImport, $request->file('file'));
+
+        return redirect()->back()->with('success', 'Leads Imported Successfully');
     }
 }
