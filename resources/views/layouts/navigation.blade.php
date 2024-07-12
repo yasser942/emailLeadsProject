@@ -27,6 +27,11 @@
                         {{ __('Email Templates') }}
                     </x-nav-link>
                 </div>
+                <div class="hidden space-x-8 sm:-my-px sm:ml-10 sm:flex">
+                    <x-nav-link :href="route('mailtrap-settings.index')" :active="request()->routeIs('mailtrap-settings.index')">
+                        {{ __('Mailtrap Settings') }}
+                    </x-nav-link>
+                </div>
             </div>
 
             <!-- Settings Dropdown -->
